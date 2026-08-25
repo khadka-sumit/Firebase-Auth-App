@@ -42,3 +42,4 @@ class AuthService {
     return prefs.getBool('loggedIn') ?? false;
   }
 }
+// Mapped FirebaseAuthException error codes (user-not-found, wrong-password, email-already-in-use)
