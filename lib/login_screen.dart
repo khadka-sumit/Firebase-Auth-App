@@ -1,22 +1,76 @@
 import 'package:flutter/material.dart';
 
+import 'auth_service.dart';
+import 'register_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() =>
+      _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
+  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+
+  final AuthService authService = AuthService();
 
   bool hidePassword = true;
 
+  Future<void> login() async {
+    String username =
+        usernameController.text.trim();
+
+    String password =
+        passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter username and password',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    bool success = await authService.login(
+      username,
+      password,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      await authService.saveLogin();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login successful'),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Invalid username or password',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    emailController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
+
     super.dispose();
   }
 
@@ -27,18 +81,26 @@ class _LoginScreenState extends State<LoginScreen> {
         title: const Text('Login'),
         centerTitle: true,
       ),
-      body: Padding(
+
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 50),
+
+            const Icon(
+              Icons.account_circle,
+              size: 100,
+              color: Colors.blue,
+            ),
+
+            const SizedBox(height: 30),
 
             TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
+              controller: usernameController,
               decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+                labelText: 'Username',
+                prefixIcon: Icon(Icons.person),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -50,8 +112,10 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: hidePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock),
-                border: const OutlineInputBorder(),
+                prefixIcon:
+                    const Icon(Icons.lock),
+                border:
+                    const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
                     hidePassword
@@ -60,7 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () {
                     setState(() {
-                      hidePassword = !hidePassword;
+                      hidePassword =
+                          !hidePassword;
                     });
                   },
                 ),
@@ -71,10 +136,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
             SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: login,
                 child: const Text('Login'),
               ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Don't have an account?",
+                ),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const RegisterScreen(),
+                      ),
+                    );
+                  },
+                  child:
+                      const Text('Register'),
+                ),
+              ],
             ),
           ],
         ),
