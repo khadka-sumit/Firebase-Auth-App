@@ -1,26 +1,76 @@
 import 'package:flutter/material.dart';
+
+import 'auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() =>
+      _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController =
-      TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
 
-  final TextEditingController passwordController =
-      TextEditingController();
+  final AuthService authService = AuthService();
 
   bool hidePassword = true;
 
+  Future<void> login() async {
+    String username =
+        usernameController.text.trim();
+
+    String password =
+        passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter username and password',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    bool success = await authService.login(
+      username,
+      password,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      await authService.saveLogin();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login successful'),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Invalid username or password',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    emailController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
+
     super.dispose();
   }
 
@@ -46,28 +96,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 30),
 
-            // Email
             TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
+              controller: usernameController,
               decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+                labelText: 'Username',
+                prefixIcon: Icon(Icons.person),
                 border: OutlineInputBorder(),
               ),
             ),
 
             const SizedBox(height: 15),
 
-            // Password
             TextField(
               controller: passwordController,
               obscureText: hidePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock),
-                border: const OutlineInputBorder(),
-
+                prefixIcon:
+                    const Icon(Icons.lock),
+                border:
+                    const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
                     hidePassword
@@ -76,7 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () {
                     setState(() {
-                      hidePassword = !hidePassword;
+                      hidePassword =
+                          !hidePassword;
                     });
                   },
                 ),
@@ -85,45 +134,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 25),
 
-            // Login Button
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  String email = emailController.text.trim();
-                  String password =
-                      passwordController.text.trim();
-
-                  if (email.isEmpty || password.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Please enter email and password',
-                        ),
-                      ),
-                    );
-
-                    return;
-                  }
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Login functionality will be added next',
-                      ),
-                    ),
-                  );
-                },
+                onPressed: login,
                 child: const Text('Login'),
               ),
             ),
 
             const SizedBox(height: 15),
 
-            // Register Section
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
               children: [
                 const Text(
                   "Don't have an account?",
@@ -139,7 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
-                  child: const Text('Register'),
+                  child:
+                      const Text('Register'),
                 ),
               ],
             ),
